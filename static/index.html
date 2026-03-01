@@ -15,6 +15,11 @@
 </head>
 <body>
 <div class="container">
+
+<div style="text-align:right; margin-bottom:10px;">
+    <button id="themeToggle">🌙 Dark Mode</button>
+</div>
+
 <div class="card">
 <h2>Γράψε την έκθεσή σου:</h2>
 <textarea id="text" rows="10" style="width:100%;"></textarea><br>
@@ -56,13 +61,21 @@
 </div>
 
 <div class="card">
-<h3>Top Λέξεις</h3>
-<canvas id="wordsChart"></canvas>
-</div>
+    <div class="results-grid">
 
-<div class="card">
-<h3>Word Cloud</h3>
-<canvas id="wordCloudCanvas"></canvas>
+        <!-- ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ -->
+        <div>
+            <h3>Top Λέξεις</h3>
+            <canvas id="wordsChart"></canvas>
+        </div>
+
+        <!-- ΔΕΞΙΑ ΣΤΗΛΗ -->
+        <div>
+            <h3>Word Cloud</h3>
+            <canvas id="wordCloudCanvas"></canvas>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -125,18 +138,23 @@ async function analyzeText(){
         const list = topWords.map(w => [w[0], w[1]]);
         const canvas = document.getElementById('wordCloudCanvas');
 
-		// Responsive canvas sizing
-		canvas.width = canvas.parentElement.clientWidth;
-		canvas.height = canvas.width * 0.6;
+		// Πλήρες responsive πλάτος
+		canvas.width = canvas.parentElement.offsetWidth;
+		canvas.height = Math.max(350, canvas.width * 0.6);
+
+		// Υπολογισμός δυναμικού scaling
+		const scaleFactor = canvas.width / 800;  // 800 = desktop reference
 
 		WordCloud(canvas, {
 			list: list,
-			gridSize: Math.round(16 * canvas.width / 1024),
-			weightFactor: function(size){ 
-				return size * (canvas.width / 600);
+			gridSize: Math.max(8, Math.round(12 * scaleFactor)),
+			weightFactor: function(size) {
+				return Math.max(20, size * 18 * scaleFactor);
 			},
-			rotateRatio: 0.3,
+			fontFamily: 'Segoe UI, Arial',
+			rotateRatio: 0.2,
 			shape: 'circle',
+			backgroundColor: getComputedStyle(document.body).backgroundColor,
 			color: 'random-dark'
 		});
 
@@ -144,6 +162,28 @@ async function analyzeText(){
         console.error(err);
         alert("Υπήρξε πρόβλημα στην ανάλυση. Δες console για λεπτομέρειες.");
     }
+	
+	const toggleBtn = document.getElementById("themeToggle");
+
+	// Φόρτωση αποθηκευμένου theme
+	if (localStorage.getItem("theme") === "dark") {
+		document.documentElement.setAttribute("data-theme", "dark");
+		toggleBtn.innerText = "☀️ Light Mode";
+	}
+
+	toggleBtn.addEventListener("click", () => {
+		const currentTheme = document.documentElement.getAttribute("data-theme");
+
+		if (currentTheme === "dark") {
+			document.documentElement.removeAttribute("data-theme");
+			localStorage.setItem("theme", "light");
+			toggleBtn.innerText = "🌙 Dark Mode";
+		} else {
+			document.documentElement.setAttribute("data-theme", "dark");
+			localStorage.setItem("theme", "dark");
+			toggleBtn.innerText = "☀️ Light Mode";
+		}
+	});
 }
 </script>
 </div>

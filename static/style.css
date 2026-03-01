@@ -108,3 +108,66 @@ canvas {
         padding: 15px;
     }
 }
+
+/* ====== DESKTOP 2-COLUMN LAYOUT ====== */
+
+.results-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+/* Desktop layout */
+@media (min-width: 900px) {
+    .results-grid {
+        grid-template-columns: 1fr 1.3fr;
+        align-items: start;
+    }
+}
+
+/* Κάνουμε το wordcloud να γεμίζει σωστά */
+#wordCloudCanvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* ===== DARK MODE ===== */
+
+:root {
+    --bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #222;
+    --bar-bg: #eee;
+}
+
+[data-theme="dark"] {
+    --bg: #121212;
+    --card-bg: #1e1e1e;
+    --text: #f0f0f0;
+    --bar-bg: #2a2a2a;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+}
+
+.card {
+    background: var(--card-bg);
+    transition: background 0.3s;
+}
+
+.bar-container {
+    background-color: var(--bar-bg);
+}
+
+textarea {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid #555;
+}
+
+button {
+    transition: 0.2s;
+}
