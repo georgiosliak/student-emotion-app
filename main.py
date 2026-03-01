@@ -6,6 +6,9 @@ import re
 
 app = FastAPI()
 
+# Mount static folder για το index.html
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 class TextInput(BaseModel):
     text: str
 
@@ -30,7 +33,7 @@ personalization_patterns = [
 
 def analyze_text(text):
     text_lower = text.lower()
-    # Tokenization ελληνικών με regex (λειτουργεί κανονικά)
+    # Tokenization ελληνικών με regex
     tokens = re.findall(r'\w{2,}', text_lower)
 
     total_words = len(tokens)
@@ -70,6 +73,3 @@ def analyze_text(text):
 @app.post("/analyze")
 def analyze(input: TextInput):
     return analyze_text(input.text)
-
-# Αν δεν έχεις static folder, μπορείς να σχολιάσεις αυτή τη γραμμή
-# app.mount("/", StaticFiles(directory="static", html=True), name="static")
