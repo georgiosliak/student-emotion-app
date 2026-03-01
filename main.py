@@ -4,8 +4,15 @@ from pydantic import BaseModel
 import spacy
 from collections import Counter
 import re
+import os
+import subprocess
 
-nlp = spacy.load("el_core_news_sm")
+#nlp = spacy.load("el_core_news_sm")
+try:
+    nlp = spacy.load("el_core_news_sm")
+except:
+    subprocess.run(["python", "-m", "spacy", "download", "el_core_news_sm"])
+    nlp = spacy.load("el_core_news_sm")
 app = FastAPI()
 
 class TextInput(BaseModel):
