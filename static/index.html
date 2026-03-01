@@ -4,21 +4,24 @@
     <title>Ανάλυση Έκθεσης – Word Cloud</title>
 
     <!-- Chart.js για το bar chart των Top λέξεων -->
-    <script src="/static/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- wordcloud2.js για πραγματικό word cloud σε canvas -->
-    <script src="/static/wordcloud2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.min.js"></script>
 
     <link rel="stylesheet" href="/static/style.css">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-
+<div class="container">
+<div class="card">
 <h2>Γράψε την έκθεσή σου:</h2>
 <textarea id="text" rows="10" style="width:100%;"></textarea><br>
 <button onclick="analyzeText()">Ανάλυση</button>
+</div>
 
+<div class="card">
 <h3>Αποτελέσματα:</h3>
 
 <!-- Μπάρες -->
@@ -44,17 +47,23 @@
     <strong>Γνωστικές Στρεβλώσεις</strong>
     <pre id="distortions"></pre>
 </div>
-
+</div>
+<div class="card">
 <div>
     <h3>Συνολική Βαθμολογία Συναισθήματος</h3>
     <div id="overallScore" style="font-size:24px; font-weight:bold;"></div>
 </div>
+</div>
 
+<div class="card">
 <h3>Top Λέξεις</h3>
 <canvas id="wordsChart"></canvas>
+</div>
 
+<div class="card">
 <h3>Word Cloud</h3>
 <canvas id="wordCloudCanvas"></canvas>
+</div>
 
 <script>
 // Ερμηνείες για μπάρες
@@ -137,6 +146,6 @@ async function analyzeText(){
     }
 }
 </script>
-
+</div>
 </body>
 </html>
