@@ -1,13 +1,15 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from collections import Counter
 import re
+import os
 
 app = FastAPI()
 
-# Mount static folder για το index.html
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Mount static assets μόνο στο /static
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class TextInput(BaseModel):
     text: str
@@ -33,7 +35,7 @@ personalization_patterns = [
 
 def analyze_text(text):
     text_lower = text.lower()
-    # Tokenization ελληνικών με regex
+    # Tokenization ελληνικών
     tokens = re.findall(r'\w{2,}', text_lower)
 
     total_words = len(tokens)
@@ -73,3 +75,8 @@ def analyze_text(text):
 @app.post("/analyze")
 def analyze(input: TextInput):
     return analyze_text(input.text)
+
+# Root route για να φορτώνει το index.html
+@app.get("/")
+def read_index():
+    return FileResponse(os.path.join("static", "index.html"))
