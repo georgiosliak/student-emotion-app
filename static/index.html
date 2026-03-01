@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ανάλυση Έκθεσης – Word Cloud</title>
+
+    <!-- Chart.js για το bar chart των Top λέξεων -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- wordcloud2.js για πραγματικό word cloud σε canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Γράψε την έκθεσή σου:</h2>
+<textarea id="text" rows="10" style="width:100%;"></textarea><br>
+<button onclick="analyzeText()">Ανάλυση</button>
+
+<h3>Αποτελέσματα:</h3>
+
+<!-- Μπάρες -->
+<div>
+    <strong>Λεξιλογικός Πλούτος</strong>
+    <div class="bar-container"><div id="lexicalBar" class="bar green" style="width:0%">0%</div></div>
+    <small id="lexicalInterpretation"></small>
+</div>
+
+<div>
+    <strong>Χρήση Α’ Προσώπου</strong>
+    <div class="bar-container"><div id="firstPersonBar" class="bar blue" style="width:0%">0%</div></div>
+    <small id="firstPersonInterpretation"></small>
+</div>
+
+<div>
+    <strong>Απόλυτες Εκφράσεις</strong>
+    <div class="bar-container"><div id="absoluteBar" class="bar orange" style="width:0%">0%</div></div>
+    <small id="absoluteInterpretation"></small>
+</div>
+
+<div>
+    <strong>Γνωστικές Στρεβλώσεις</strong>
+    <pre id="distortions"></pre>
+</div>
+
+<div>
+    <h3>Συνολική Βαθμολογία Συναισθήματος</h3>
+    <div id="overallScore" style="font-size:24px; font-weight:bold;"></div>
+</div>
+
+<h3>Top Λέξεις</h3>
+<canvas id="wordsChart" height="150"></canvas>
+
+<h3>Word Cloud</h3>
+<canvas id="wordCloudCanvas" width="600" height="400"></canvas>
+
+<script>
+// Ερμηνείες για μπάρες
+function interpretBar(score,type){
+    if(type==='lexical'){if(score<20)return "Χαμηλή ποικιλία λέξεων";if(score<50)return "Μέτρια ποικιλία λέξεων";return "Υψηλή ποικιλία λέξεων";}
+    if(type==='first'){if(score<10)return "Χαμηλή αυτοαναφορικότητα";if(score<30)return "Μέτρια αυτοαναφορικότητα";return "Υψηλή αυτοαναφορικότητα";}
+    if(type==='absolute'){if(score<10)return "Σπάνια χρήση απόλυτων εκφράσεων";return "Συχνή χρήση απόλυτων εκφράσεων";}
+}
+
+async function analyzeText(){
+    const text = document.getElementById("text").value;
+    try{
+        let response = await fetch("/analyze", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({text:text})
+        });
+        if(!response.ok) throw new Error(`Server error: ${response.status}`);
+        let data = await response.json();
+
+        // Μπάρες & ερμηνείες
+        document.getElementById("lexicalBar").style.width = data.lexical_score+"%";
+        document.getElementById("lexicalBar").innerText = data.lexical_score+"%";
+        document.getElementById("lexicalInterpretation").innerText = interpretBar(data.lexical_score,'lexical');
+
+        let firstPercent = Math.min(Math.round(data.first_person_ratio*100),100);
+        document.getElementById("firstPersonBar").style.width = firstPercent+"%";
+        document.getElementById("firstPersonBar").innerText = firstPercent+"%";
+        document.getElementById("firstPersonInterpretation").innerText = interpretBar(firstPercent,'first');
+
+        let absPercent = Math.min(Math.round(data.absolute_expression_ratio*100),100);
+        document.getElementById("absoluteBar").style.width = absPercent+"%";
+        document.getElementById("absoluteBar").innerText = absPercent+"%";
+        document.getElementById("absoluteInterpretation").innerText = interpretBar(absPercent,'absolute');
+
+        document.getElementById("distortions").innerText = 
+            "Εντοπίστηκαν: " + (data.cognitive_distortions.length ? data.cognitive_distortions.join(", ") : "Καμία");
+
+        // Συνολική βαθμολογία
+        let overallScore = data.lexical_score*0.4 + (100-data.first_person_ratio*100)*0.3 + (100-data.absolute_expression_ratio*100)*0.3;
+        const overallDiv = document.getElementById("overallScore");
+        if(overallScore>=70){overallDiv.innerText=`Καλή 😃 (${Math.round(overallScore)}%)`; overallDiv.style.color="#4CAF50";}
+        else if(overallScore>=40){overallDiv.innerText=`Μέτρια 😐 (${Math.round(overallScore)}%)`; overallDiv.style.color="#ff9800";}
+        else{overallDiv.innerText=`Χαμηλή 😟 (${Math.round(overallScore)}%)`; overallDiv.style.color="#f44336";}
+
+        // Top λέξεις chart
+        const topWords = data.top_repeated_words.length ? data.top_repeated_words : [["(λόγος)",1]];
+        const labels = topWords.map(e=>e[0]);
+        const counts = topWords.map(e=>e[1]);
+        const ctx = document.getElementById('wordsChart').getContext('2d');
+        if(window.wordsChart && typeof window.wordsChart.destroy === 'function') window.wordsChart.destroy();
+        window.wordsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {labels: labels, datasets: [{label:'Συχνότητα', data: counts, backgroundColor:'#2196F3'}]},
+            options: {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+        });
+
+        // Word Cloud με wordcloud2.js
+        const list = topWords.map(w => [w[0], w[1]]);
+        const canvas = document.getElementById('wordCloudCanvas');
+        WordCloud(canvas, {
+            list: list,
+            gridSize: Math.round(16 * canvas.width / 1024),
+            weightFactor: function(size){ return size * 10; },
+            rotateRatio: 0.5,
+            rotationSteps: 2,
+            shape: 'circle',
+            color: 'random-dark'
+        });
+
+    } catch(err){
+        console.error(err);
+        alert("Υπήρξε πρόβλημα στην ανάλυση. Δες console για λεπτομέρειες.");
+    }
+}
+</script>
+
+</body>
+</html>
