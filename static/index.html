@@ -10,6 +10,8 @@
     <script src="/static/wordcloud2.min.js"></script>
 
     <link rel="stylesheet" href="/static/style.css">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -49,10 +51,10 @@
 </div>
 
 <h3>Top Λέξεις</h3>
-<canvas id="wordsChart" height="150"></canvas>
+<canvas id="wordsChart"></canvas>
 
 <h3>Word Cloud</h3>
-<canvas id="wordCloudCanvas" width="600" height="400"></canvas>
+<canvas id="wordCloudCanvas"></canvas>
 
 <script>
 // Ερμηνείες για μπάρες
@@ -113,15 +115,21 @@ async function analyzeText(){
         // Word Cloud με wordcloud2.js
         const list = topWords.map(w => [w[0], w[1]]);
         const canvas = document.getElementById('wordCloudCanvas');
-        WordCloud(canvas, {
-            list: list,
-            gridSize: Math.round(16 * canvas.width / 1024),
-            weightFactor: function(size){ return size * 10; },
-            rotateRatio: 0.5,
-            rotationSteps: 2,
-            shape: 'circle',
-            color: 'random-dark'
-        });
+
+		// Responsive canvas sizing
+		canvas.width = canvas.parentElement.clientWidth;
+		canvas.height = canvas.width * 0.6;
+
+		WordCloud(canvas, {
+			list: list,
+			gridSize: Math.round(16 * canvas.width / 1024),
+			weightFactor: function(size){ 
+				return size * (canvas.width / 600);
+			},
+			rotateRatio: 0.3,
+			shape: 'circle',
+			color: 'random-dark'
+		});
 
     } catch(err){
         console.error(err);
