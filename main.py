@@ -36,7 +36,7 @@ personalization_patterns = [
 def analyze_text(text):
     text_lower = text.lower()
     # Tokenization ελληνικών
-    tokens = re.findall(r'\w{2,}', text_lower)
+    tokens = [w for w in re.findall(r'\w{3,}', text_lower)]
 
     total_words = len(tokens)
     unique_words = len(set(tokens))
@@ -58,7 +58,7 @@ def analyze_text(text):
         if re.search(pattern, text_lower):
             distortions.add("Προσωποποίηση")
 
-    top_words = word_counts.most_common(10)
+    top_words = word_counts.most_common(50)
     if not top_words:
         top_words = [(tokens[0], 1)] if tokens else [("(καμία λέξη)", 1)]
 

@@ -123,7 +123,11 @@ async function analyzeText(){
         else{overallDiv.innerText=`Χαμηλή 😟 (${Math.round(overallScore)}%)`; overallDiv.style.color="#f44336";}
 
         // Top λέξεις chart
-        const topWords = data.top_repeated_words.length ? data.top_repeated_words : [["(λόγος)",1]];
+        const allWords = data.top_repeated_words.length ? data.top_repeated_words : [["(λόγος)",1]];
+
+		// Chart μόνο top 10
+		const topWords = allWords.slice(0,10);
+		
         const labels = topWords.map(e=>e[0]);
         const counts = topWords.map(e=>e[1]);
         const ctx = document.getElementById('wordsChart').getContext('2d');
@@ -135,7 +139,7 @@ async function analyzeText(){
         });
 
         // Word Cloud με wordcloud2.js
-        const list = topWords.map(w => [w[0], w[1]]);
+        const list = allWords;
         const canvas = document.getElementById('wordCloudCanvas');
 
 		// Πλήρες responsive πλάτος
